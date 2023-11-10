@@ -1,5 +1,9 @@
 #include <stdint.h>
 
+#define TITLE   "Rigol 'vendor.bin' encoder/decoder"
+#define AUTHOR  "Zelea"
+#define VERSION "0.5"
+
 #ifndef _MY_Uxx
 #define _MY_Uxx
 typedef uint8_t u8;

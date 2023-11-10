@@ -218,7 +218,7 @@ decrypt_vendor( char *bin, char *dec )
 }
 
 int
-encrypt_vendor( char *enc )
+encrypt_vendor( char *bin, char *enc )
 {
   FILE         *f;
   u32           len, olen;
@@ -236,6 +236,8 @@ encrypt_vendor( char *enc )
   len = fwrite( obuf, 1, olen, f );
   fclose( f );
   free( obuf );
+  printf( "New \"%s\" file has been created\nYou may rename it to \"%s\"\n"
+      "and install it on your scope Rigol partition\n", enc, bin );
   return 0;
 }
 
@@ -285,6 +287,7 @@ check_vendor( void )
 void
 usage( char *progname )
 {
+  fprintf( stderr, "\n%s v%s - %s\n", TITLE, VERSION, AUTHOR );
   fprintf( stderr, "\n%s [options] [vendor_bin_file]\n", progname );
   fprintf( stderr, "\t-M #\tset scope model\n" );
   fprintf( stderr, "\t-n\trandom serial number\n" );
@@ -373,7 +376,7 @@ main( int argc, char *argv[] )
   decrypt_vendor( vendor_bin, vendor_dec );
   if( ( ret = check_vendor(  ) ) < 0 )
     return ret;
-  if( reencode && ( ret = encrypt_vendor( vendor_enc ) ) < 0 )
+  if( reencode && ( ret = encrypt_vendor( vendor_bin, vendor_enc ) ) < 0 )
     return ret;
   return 0;
 }
