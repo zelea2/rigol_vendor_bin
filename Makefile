@@ -24,8 +24,8 @@ PROGS = rigol_vendor_bin rigol_vendor_bin.exe
 
 all: $(PROGS)
 
-RIGOL_OBJ = rigol_vendor_bin.o xxtea.o crc32.o strings.o
-RIGOL_XOBJ = rigol_vendor_bin.obj xxtea.obj crc32.obj strings.obj
+RIGOL_OBJ = rigol_vendor_bin.o aes.o xxtea.o crc32.o strings.o
+RIGOL_XOBJ = rigol_vendor_bin.obj aes.obj xxtea.obj crc32.obj strings.obj
 
 %.obj: %.c $(INC)
 	$(XCC) $(XCFLAGS) -c $< -o $@
@@ -40,4 +40,4 @@ rigol_vendor_bin.exe: $(RIGOL_XOBJ)
 	$(XCC) $(XLFLAGS) -o $@ $^
 
 clean:
-	rm -f *~ *.obj *.o # $(PROGS)
+	rm -f *~ *.obj *.o *.dec *.enc # $(PROGS)
