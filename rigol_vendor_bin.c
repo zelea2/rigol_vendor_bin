@@ -255,7 +255,7 @@ check_vendor( void )
   int           l;
   if( Vendor.modelnr == -1 )
   {
-    fprintf( stderr, "At least the scope model (-m) must be supplied\n" );
+    fprintf( stderr, "\nAt least the scope model (-M) must be supplied\n" );
     return -1;
   }
   if( Vendor.serialnr <= 0 )
@@ -375,7 +375,6 @@ generate_options( char *model )
 void
 usage( char *progname )
 {
-  fprintf( stderr, "\n%s v%s - %s\n", TITLE, VERSION, AUTHOR );
   fprintf( stderr, "\n%s [options] [vendor_bin_file]\n", progname );
   fprintf( stderr, "\t-M #\tset scope model\n" );
   fprintf( stderr, "\t-n\trandom serial number\n" );
@@ -384,7 +383,7 @@ usage( char *progname )
   fprintf( stderr, "\t-A #\tset MAC address\n" );
   fprintf( stderr, "\t-o\tgenerate all option strings (uses 'Key.data')\n" );
   fprintf( stderr, "\t-O #\tgenerate option string for feature #\n" );
-  fprintf( stderr, "\t-d debug switch\n" );
+  fprintf( stderr, "\t-d\tdebug switch\n" );
   exit( 0 );
 }
 
@@ -393,6 +392,8 @@ main( int argc, char *argv[] )
 {
   char         *p, *vendor_bin, *vendor_enc, *vendor_dec;
   int           l, ret, reencode, options, option;
+
+  fprintf( stderr, "\n%s v%s - %s\n", TITLE, VERSION, AUTHOR );
 
   srand( time( 0 ) );
   reencode = 0;
@@ -474,7 +475,7 @@ main( int argc, char *argv[] )
 
   decrypt_vendor( vendor_bin, vendor_dec );
   if( ( ret = check_vendor(  ) ) < 0 )
-    return ret;
+    usage( argv[0] );
   if( reencode && ( ret = encrypt_vendor( vendor_bin, vendor_enc ) ) < 0 )
     return ret;
   if( options )
