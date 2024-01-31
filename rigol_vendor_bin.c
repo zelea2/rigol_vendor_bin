@@ -311,7 +311,7 @@ decrypt_keydata( char *bin, char *dec )
   len = st.st_size;
   if( ( buf = malloc( len ) ) == NULL )
     return -2;
-  f = fopen( bin, "rb" );
+  f = fopen( bin + old, "rb" );
   len = fread( buf, 1, len, f );
   fclose( f );
   if( !old )
