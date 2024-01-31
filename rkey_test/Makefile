@@ -1,12 +1,13 @@
 
-test:	test.o libscope.o chk.o
-	aarch64-linux-gnu-gcc -o $@ $^ -static
+test:	test.o 
+	bin/clang -o $@ $< -L. -lscope-auklet
 
-%.o: %.asm
-	aarch64-linux-gnu-as -o $@ -c $^
+read-fram: read-fram.o
+	bin/clang -o $@ $<
 
 %.o: %.c
-	aarch64-linux-gnu-gcc -O2 -c $^
+	bin/clang -O2 -c $^
+
 
 clean:
 	rm -f *.o test

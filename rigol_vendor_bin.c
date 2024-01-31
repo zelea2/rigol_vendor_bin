@@ -295,19 +295,28 @@ int
 decrypt_keydata( char *bin, char *dec )
 {
   FILE         *f;
+  int		i, old;
   struct stat   st;
   char         *s;
   u8           *buf, *obuf;
   u32           len, olen;
 
-  if( stat( bin, &st ) )
-    return -1;
+  old = 0;
+  if( stat( bin + old, &st ) )
+  {
+    old = 1; // also try old key
+    if( stat( bin + old, &st ) ) 
+      return -1;
+  }
   len = st.st_size;
   if( ( buf = malloc( len ) ) == NULL )
     return -2;
   f = fopen( bin, "rb" );
   len = fread( buf, 1, len, f );
   fclose( f );
+  if( !old )
+    for( i = 0; i < len; i++ )
+      buf[i] ^= i;
   olen = 0;
   obuf = xxtea_decrypt( buf, len, ( u8 * ) default_key, &olen );
   if( ( s = strchr( obuf, ';' ) ) == NULL )
@@ -381,7 +390,8 @@ usage( char *progname )
   fprintf( stderr, "\t-N #\tset serial number\n" );
   fprintf( stderr, "\t-a\trandom MAC address\n" );
   fprintf( stderr, "\t-A #\tset MAC address\n" );
-  fprintf( stderr, "\t-o\tgenerate all option strings (uses 'Key.data')\n" );
+  fprintf( stderr, "\tOption strings require 'RKey.data' (or 'Key.data')\n" );
+  fprintf( stderr, "\t-o\tgenerate all option strings\n" );
   fprintf( stderr, "\t-O #\tgenerate option string for feature #\n" );
   fprintf( stderr, "\t-d\tdebug switch\n" );
   exit( 0 );
@@ -480,7 +490,7 @@ main( int argc, char *argv[] )
     return ret;
   if( options )
   {
-    if( decrypt_keydata( "Key.data", "Key.dec" ) < 0 )
+    if( decrypt_keydata( "RKey.data", "Key.dec" ) < 0 )
       return ret;
     generate_options( Vendor.model );
   }
