@@ -11,7 +11,8 @@ rigol_vendor_bin [options] [vendor_bin_file]
  - -N #    set serial number
  - -a      random MAC address
  - -A #    set MAC address
- Option strings require 'RKey.data' (or 'Key.data')
+
+Option strings require 'RKey.data' (or 'Key.data')
  - -o      generate all option strings
  - -O #    generate option string for feature #
  - -d      debug switch
