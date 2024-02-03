@@ -3,7 +3,7 @@ decode and encode the vendor.bin file from a Rigol oscilloscope
 
 Precompiled Linux and Windows binaries are included 
 
-Rigol 'vendor.bin' encoder/decoder v0.7 - Zelea
+Rigol 'vendor.bin' encoder/decoder v0.8 - Zelea
 
 rigol_vendor_bin [options] [vendor_bin_file]
  - -M #    set scope model

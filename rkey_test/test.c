@@ -14,6 +14,10 @@
 #define CApiLicense_init _ZN11CApiLicense4initEv
 #define CApiLicense_CApiLicense _ZN11CApiLicenseC2E7RStringi
 #define CApiLicense_generate_something _ZN11CApiLicense18generate_somethingEm
+#define RString_remove _ZN7RString6removeEii
+#define COptInfo_COptInfo _ZN8COptInfoC2E7OptTypei
+#define COptInfo_setName _ZN8COptInfo7setNameERK7RString
+#define COptInfo_setLicense _ZN8COptInfo10setLicenseERK7RString
 
 char         *LIC_PATH;
 
@@ -35,7 +39,10 @@ typedef struct
   unsigned char lic[0x1B8];
 } CApiLicense;
 
-#define COptInfo void
+typedef struct
+{
+  unsigned char opt[0x68];
+} COptInfo;
 
 int           API_SetStr2Hex( RString, unsigned char *, int * );
 int           RString_toUpper( RString * );
@@ -46,7 +53,12 @@ int           CApiLicense_getLicenseKey( CApiLicense * this, RString *,
 int           CApiLicense_verifyOption( CApiLicense * this, COptInfo *,
     RString *, RString * );
 void          CApiLicense_CApiLicense( CApiLicense * this, RString, int );
-int           CApiLicense_generate_something( CApiLicense * this, long long len, void **vect );
+int           CApiLicense_generate_something( CApiLicense * this,
+    long long len, void **vect );
+int           RString_remove( RString *, int from, int len, RString * );
+void          COptInfo_COptInfo( COptInfo *, int, int );
+const RString *COptInfo_setName( COptInfo *, RString * );
+const RString *COptInfo_setLicense( COptInfo *, RString * );
 
 void
 set_RString( RString *r, char *str )
@@ -88,9 +100,10 @@ main( int argc, char *argv[] )
 {
   RString       z, a, b;
   CApiLicense   AL;
+  COptInfo      Opt;
   unsigned char hex[32];
   void         *v;
-  int           i, fd, hlen;
+  int           i, pass, fd, hlen;
 
   printf( "Start main\n" );
   dlopen( "libscope-auklet.so", RTLD_NOW );
@@ -112,8 +125,20 @@ main( int argc, char *argv[] )
   CApiLicense_getLicenseKey( &AL, &a, &b );
   printf( "key: %s\n", get_RString( &a, NULL ) );
   printf( "seed: %s\n", get_RString( &b, NULL ) );
+  COptInfo_COptInfo( &Opt, 19, 0 << 6 ); // RLU
+  set_RString( &z, "RLU" );
+  COptInfo_setName( &Opt, &z );
+  set_RString( &z, "d272eae068c46792d961e7589d3ee0bb5bc962346bb4b8f4d929b17e6049cda4b7d2a20db5e0e9b4473b6999f080b6c80123456701234567");
+  COptInfo_setLicense( &Opt, &z );
+  set_RString( &b, "null" );
+  pass = CApiLicense_verifyOption( &AL, &Opt, &a, &b );
+  printf( "b: %s\n", get_RString( &b, NULL ) );
+  printf( "vfy %d\n", pass );
   fd = creat( "AL.bin", 0644 );
   write( fd, &AL, sizeof( CApiLicense ) );
+  close( fd );
+  fd = creat( "Opt.bin", 0644 );
+  write( fd, &Opt, sizeof( COptInfo ) );
   close( fd );
 #endif
   return 0;

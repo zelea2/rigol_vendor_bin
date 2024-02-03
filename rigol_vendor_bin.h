@@ -2,7 +2,7 @@
 
 #define TITLE   "Rigol 'vendor.bin' encoder/decoder"
 #define AUTHOR  "Zelea"
-#define VERSION "0.7"
+#define VERSION "0.8"
 
 #ifndef _MY_Uxx
 #define _MY_Uxx

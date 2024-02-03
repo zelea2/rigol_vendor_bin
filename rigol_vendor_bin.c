@@ -30,6 +30,7 @@ struct entry
   u32           dsize;
   u32           strlen;
 };
+
 #define OFF(x) offsetof( struct entry, x)
 
 struct vendor
@@ -51,6 +52,7 @@ check_model( void )
 {
   char        **p;
   int           i;
+
   if( Vendor.model == NULL )
     return 0;
   Vendor.modelnr = 0;
@@ -104,7 +106,7 @@ decode_vendor( u8 *d, u32 flen )
       return -12;
     printf( "%04X  EntrySize: %d\n", off + OFF( esize ), e.esize );
     printf( "%04X  Type: %d (%s)\n", off + OFF( type ), e.type,
-        type_str[e.type] );
+	type_str[e.type] );
     printf( "%04X  FieldSize: %d\n", off + OFF( fsize ), e.fsize );
     printf( "%04X  CRC32: %08X", off + OFF( crc ), e.crc );
     crc = crc32( d + off + OFF( strlen ), e.fsize - 2 * sizeof( u32 ) );
@@ -120,21 +122,21 @@ decode_vendor( u8 *d, u32 flen )
     switch ( e.type )
     {
       case 5:
-        if( Vendor.modelnr == -1 )
-        {
-          Vendor.model = strdup( dbuf );
-          if( check_model(  ) <= 0 )
-            printf( "Invalid model %s\n", Vendor.model );
-        }
-        break;
+	if( Vendor.modelnr == -1 )
+	{
+	  Vendor.model = strdup( dbuf );
+	  if( check_model(  ) <= 0 )
+	    printf( "Invalid model %s\n", Vendor.model );
+	}
+	break;
       case 7:
-        if( Vendor.serialnr == -1 )
-          Vendor.serialnr = atoi( &dbuf[e.strlen - 7] );
-        break;
+	if( Vendor.serialnr == -1 )
+	  Vendor.serialnr = atoi( &dbuf[e.strlen - 7] );
+	break;
       case 9:
-        if( Vendor.mac_low_nibbles == -1 )
-          Vendor.mac_low_nibbles = strtoll( &dbuf[e.strlen - 5], NULL, 16 );
-        break;
+	if( Vendor.mac_low_nibbles == -1 )
+	  Vendor.mac_low_nibbles = strtoll( &dbuf[e.strlen - 5], NULL, 16 );
+	break;
     }
     free( dbuf );
     off += e.dsize + sizeof( struct entry );
@@ -161,23 +163,23 @@ encode_vendor( u8 **d, u32 *flen )
   for( n = 0; n < 3; n++ )
   {
     data = *d + 2 * sizeof( u32 ) +
-        n * ( sizeof( struct entry ) + MAX_STRING_SIZE );
+	n * ( sizeof( struct entry ) + MAX_STRING_SIZE );
     e = ( struct entry * ) data;
     data += sizeof( struct entry );
     switch ( n )
     {
       case 0:
-        e->type = 5;
-        str = Vendor.model;
-        break;
+	e->type = 5;
+	str = Vendor.model;
+	break;
       case 1:
-        e->type = 7;
-        str = Vendor.sn;
-        break;
+	e->type = 7;
+	str = Vendor.sn;
+	break;
       case 2:
-        e->type = 9;
-        str = Vendor.mac;
-        break;
+	e->type = 9;
+	str = Vendor.mac;
+	break;
     }
     e->esize = 4;
     e->strlen = strlen( str );
@@ -253,6 +255,7 @@ check_vendor( void )
 {
   char         *p;
   int           l;
+
   if( Vendor.modelnr == -1 )
   {
     fprintf( stderr, "\nAt least the scope model (-M) must be supplied\n" );
@@ -291,11 +294,25 @@ check_vendor( void )
   return 0;
 }
 
+u8
+get_hex( char *s )
+{
+  u8            h, l;
+
+  h = ( *( s + 0 ) | 0x20 ) - '0';
+  l = ( *( s + 1 ) | 0x20 ) - '0';
+  if( h > 9 )
+    h -= 0x27;
+  if( l > 9 )
+    l -= 0x27;
+  return ( h << 4 ) | l;
+}
+
 int
 decrypt_keydata( char *bin, char *dec )
 {
   FILE         *f;
-  int		i, old;
+  int           i, old;
   struct stat   st;
   char         *s;
   u8           *buf, *obuf;
@@ -304,8 +321,8 @@ decrypt_keydata( char *bin, char *dec )
   old = 0;
   if( stat( bin + old, &st ) )
   {
-    old = 1; // also try old key
-    if( stat( bin + old, &st ) ) 
+    old = 1;			// also try old key
+    if( stat( bin + old, &st ) )
       return -1;
   }
   len = st.st_size;
@@ -321,7 +338,7 @@ decrypt_keydata( char *bin, char *dec )
   obuf = xxtea_decrypt( buf, len, ( u8 * ) default_key, &olen );
   if( ( s = strchr( obuf, ';' ) ) == NULL )
     return -3;
-  memcpy( Vendor.aes_key, s + 1, 32 );  // AES key as ASCII not hex!!!
+  memcpy( Vendor.aes_key, s + 1, 32 );	// AES key as ASCII not hex!!!
   if( debug )
   {
     f = fopen( dec, "wb" );
@@ -329,16 +346,16 @@ decrypt_keydata( char *bin, char *dec )
     fclose( f );
   }
   free( obuf );
-  return 0;
+  return old;
 }
 
 void
-generate_options( char *model )
+generate_options( char *model, int new )
 {
   aes_context   ctx;
   char        **opt, *family;
   u8            xxx[3 * 16], nib;
-  char          res[3 * 2 * 16 + 1];
+  char         *r, res[3 * 2 * 16 + 16 + 1];
   int           i;
 
   printf( DELIM );
@@ -362,21 +379,25 @@ generate_options( char *model )
     sprintf( xxx, "%s#0#%s#4#0#0", model, *opt );
     for( i = 0; i < 3; i++ )
       aes_encrypt( &ctx, xxx + i * 16, xxx + i * 16 );
+    r = res;
     for( i = 0; i < 3 * 16; i++ )
     {
       // u8 to lsb hex 
       nib = xxx[i] & 0xf;
       nib += '0';
       if( nib > '9' )
-        nib += 0x27;
-      res[2 * i] = nib;
+	nib += 0x27;
+      *r++ = nib;
       nib = ( xxx[i] >> 4 ) & 0xf;
       nib += '0';
       if( nib > '9' )
-        nib += 0x27;
-      res[2 * i + 1] = nib;
+	nib += 0x27;
+      *r++ = nib;
     }
-    res[3 * 2 * 16] = 0;
+    if( new )	// append 16 dummy chars
+      for( i = 0; i < 16; i++ )
+	*r++ = '0' + ( i & 7 );
+    *r = 0;
     printf( ":SYST:OPT:INST %s-%s@%s\n", family, *opt, res );
   }
 }
@@ -401,7 +422,7 @@ int
 main( int argc, char *argv[] )
 {
   char         *p, *vendor_bin, *vendor_enc, *vendor_dec;
-  int           l, ret, reencode, options, option;
+  int           l, old, ret, reencode, options, option;
 
   fprintf( stderr, "\n%s v%s - %s\n", TITLE, VERSION, AUTHOR );
 
@@ -418,54 +439,54 @@ main( int argc, char *argv[] )
     switch ( option )
     {
       case 'd':
-        debug++;
-        break;
+	debug++;
+	break;
       case 'M':
-        Vendor.model = strdup( optarg );
-        if( check_model(  ) < 0 )
-          usage( argv[0] );
-        reencode = 1;
-        break;
+	Vendor.model = strdup( optarg );
+	if( check_model(  ) < 0 )
+	  usage( argv[0] );
+	reencode = 1;
+	break;
       case 'n':
-        Vendor.serialnr = rand(  );
-        Vendor.serialnr %= 10000000;
-        reencode = 1;
-        break;
+	Vendor.serialnr = rand(  );
+	Vendor.serialnr %= 10000000;
+	reencode = 1;
+	break;
       case 'N':
-        Vendor.serialnr = atoi( optarg );
-        if( !Vendor.serialnr )
-          Vendor.serialnr = rand(  );
-        Vendor.serialnr %= 10000000;
-        reencode = 1;
-        break;
+	Vendor.serialnr = atoi( optarg );
+	if( !Vendor.serialnr )
+	  Vendor.serialnr = rand(  );
+	Vendor.serialnr %= 10000000;
+	reencode = 1;
+	break;
       case 'a':
-        Vendor.mac_low_nibbles = rand(  );
-        Vendor.mac_low_nibbles &= 0xfffff;
-        reencode = 1;
-        break;
+	Vendor.mac_low_nibbles = rand(  );
+	Vendor.mac_low_nibbles &= 0xfffff;
+	reencode = 1;
+	break;
       case 'A':
-        Vendor.mac_low_nibbles = strtoll( optarg, NULL, 16 );
-        if( !Vendor.mac_low_nibbles )
-          Vendor.mac_low_nibbles = rand(  );
-        Vendor.mac_low_nibbles &= 0xfffff;
-        reencode = 1;
-        break;
+	Vendor.mac_low_nibbles = strtoll( optarg, NULL, 16 );
+	if( !Vendor.mac_low_nibbles )
+	  Vendor.mac_low_nibbles = rand(  );
+	Vendor.mac_low_nibbles &= 0xfffff;
+	reencode = 1;
+	break;
       case 'o':
-        options = 1;
-        break;
+	options = 1;
+	break;
       case 'O':
-        Vendor.option = strdup( optarg );
-        options = 1;
-        break;
+	Vendor.option = strdup( optarg );
+	options = 1;
+	break;
       case 'h':
-        usage( argv[0] );
-        break;
-      case EOF:                // no more options
-        break;
+	usage( argv[0] );
+	break;
+      case EOF:		// no more options
+	break;
       default:
-        fprintf( stderr, "getopt returned impossible value: %d ('%c')",
-            option, option );
-        usage( argv[0] );
+	fprintf( stderr, "getopt returned impossible value: %d ('%c')",
+	    option, option );
+	usage( argv[0] );
     }
   }
   while( option != EOF );
@@ -490,9 +511,9 @@ main( int argc, char *argv[] )
     return ret;
   if( options )
   {
-    if( decrypt_keydata( "RKey.data", "Key.dec" ) < 0 )
+    if( ( old = decrypt_keydata( "RKey.data", "Key.dec" ) ) < 0 )
       return ret;
-    generate_options( Vendor.model );
+    generate_options( Vendor.model, !old );
   }
   return 0;
 }
