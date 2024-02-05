@@ -5,7 +5,9 @@
 #include <fcntl.h>
 #include <dlfcn.h>
 
-#define LIC_PATH _ZN11CApiLicense12LICENSE_PATHE_ptr
+// I could have written this test in C++ to avoid all the demangling mess bellow
+// but I wasn't 100% sure about all the functions prototype
+
 #define API_SetStr2Hex _Z14API_SetStr2Hex7RStringPcRi
 #define RString_toUpper _ZN7RString7toUpperEv
 #define CApiLicense_verifyOption _ZN11CApiLicense12verifyOptionEP8COptInfoR7RStringS3_
@@ -18,8 +20,6 @@
 #define COptInfo_COptInfo _ZN8COptInfoC2E7OptTypei
 #define COptInfo_setName _ZN8COptInfo7setNameERK7RString
 #define COptInfo_setLicense _ZN8COptInfo10setLicenseERK7RString
-
-char         *LIC_PATH;
 
 typedef union
 {

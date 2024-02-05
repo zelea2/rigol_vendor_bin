@@ -353,10 +353,10 @@ void
 generate_options( char *model, int new )
 {
   aes_context   ctx;
-  char        **opt, *family;
-  u8            xxx[3 * 16], nib;
+  char        **opt, ***rnd, *family;
+  u8            xxx[4 * 16], nib;
   char         *r, res[3 * 2 * 16 + 16 + 1];
-  int           i;
+  int           i, len;
 
   printf( DELIM );
   printf( "Generating options for %s\n", model );
@@ -377,10 +377,14 @@ generate_options( char *model, int new )
       continue;
     memset( xxx, 0, 3 * 16 );
     sprintf( xxx, "%s#0#%s#4#0#0", model, *opt );
-    for( i = 0; i < 3; i++ )
+    rnd = (char ***)(xxx + 0x30);
+    *rnd = opt; 	// add some randomness to the last 16 bytes
+    for( i = 0; i < 4; i++ )
       aes_encrypt( &ctx, xxx + i * 16, xxx + i * 16 );
-    r = res;
-    for( i = 0; i < 3 * 16; i++ )
+    r = (void *)res;
+    // append 16 random chars for new licenses
+    len = new ? 56 : 48;
+    for( i = 0; i < len; i++ )
     {
       // u8 to lsb hex 
       nib = xxx[i] & 0xf;
@@ -394,9 +398,6 @@ generate_options( char *model, int new )
 	nib += 0x27;
       *r++ = nib;
     }
-    if( new )	// append 16 dummy chars
-      for( i = 0; i < 16; i++ )
-	*r++ = '0' + ( i & 7 );
     *r = 0;
     printf( ":SYST:OPT:INST %s-%s@%s\n", family, *opt, res );
   }
