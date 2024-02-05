@@ -2,7 +2,7 @@
 
 #define TITLE   "Rigol 'vendor.bin' encoder/decoder"
 #define AUTHOR  "Zelea"
-#define VERSION "0.9"
+#define VERSION "1.0"
 
 #ifndef _MY_Uxx
 #define _MY_Uxx
@@ -15,6 +15,10 @@ typedef uint64_t u64;
 /* strings.c */
 extern char  *scope_models[];
 extern char  *scope_options[];
+extern char  *series800_options[];
+extern char  *series900_options[];
+extern char  *series1000_options[];
+extern char  *series4000_options[];
 /* xxtea.c */
 u8           *xxtea_encrypt( const u8 * data, u32 len, u8 * key,
     u32 * ret_len );

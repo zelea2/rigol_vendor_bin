@@ -42,36 +42,83 @@ char         *scope_models[] = {
 };
 
 char         *scope_options[] = {
+  "BND",
+  "MSO",
+  "COMP",
+  "EMBD",
+  "AUTO",
+  "FLEX",
+  "AUDIO",
   "AERO",
   "ARINC",
-  "AUDIO",
-  "AUTO",
-  "BND",
+  "DG",
+  "JITTER",
+  "EYE",
+  "RTSA",
+  "CM_USB",
+  "CM_ENET",
+  "CM_MIPI",
+  "CM_HDMI",
+  "PWR",
+  "UPA",
+  "RLU",
   "BODE",
-  "BW100T20",
+  "BW7T10",
+  "BW7T15",
+  "BW7T20",
   "BW10T20",
   "BW15T25",
   "BW2T4",
   "BW2T8",
   "BW4T8",
-  "BW7T10",
-  "BW7T15",
-  "BW7T20",
-  "CM_ENET",
-  "CM_HDMI",
-  "CM_MIPI",
-  "CM_USB",
-  "COMP",
   "COUNT",
-  "DG",
-  "EMBD",
-  "EYE",
-  "FLEX",
-  "JITTER",
-  "MSO",
-  "PWR",
+  NULL
+};
+
+char         *series800_options[] = {
+  "BND",
   "RLU",
-  "RTSA",
+  "BW7T10",
+  "EMBD",
+  "AUTO",
+  "COMP",
+  NULL
+};
+
+char         *series900_options[] = {
+  "BND",
+  "BW15T25",
+  "EMBD",
+  "AUTO",
+  "COMP",
+  "BODE",
+  NULL
+};
+
+char         *series1000_options[] = {
+  "BND",
+  "BW7T10",
+  "BW7T20",
+  "BW10T20",
+  "RLU",
+  "EMBD",
+  "AUTO",
+  "COMP",
+  NULL
+};
+
+char         *series4000_options[] = {
+  "BND",
+  "BW2T4",
+  "BW2T8",
+  "BW4T8",
+  "RLU",
+  "EMBD",
+  "AUTO",
+  "COMP",
+  "AERO",
+  "FLEX",
+  "AUDIO",
   "UPA",
   NULL
 };
