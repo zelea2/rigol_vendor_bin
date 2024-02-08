@@ -51,7 +51,10 @@ struct switches
   unsigned int  reencode:1;
   unsigned int  gen_options:1;
   unsigned int  list_options:1;
+  unsigned int  gen_lic_files:1;
 } sw;
+
+aes_context   ctx;
 
 int
 check_model( void )
@@ -94,11 +97,14 @@ decode_vendor( u8 *d, u32 flen )
   crc = *( u32 * ) ( d + 0 );
   len = *( u32 * ) ( d + 4 );
   fcrc = crc32( d + 2 * sizeof( u32 ), len );
-  printf( DELIM );
-  printf( "%04X  CRC32: %08X", 0, crc );
-  printf( " (%s)\n", crc == fcrc ? "OK" : "Fail" );
-  printf( "%04X  Length: %d", 4, len );
-  printf( " (%s)\n", len + 2 * sizeof( u32 ) == flen ? "OK" : "Fail" );
+  if( !sw.gen_lic_files )
+  {
+    printf( DELIM );
+    printf( "%04X  CRC32: %08X", 0, crc );
+    printf( " (%s)\n", crc == fcrc ? "OK" : "Fail" );
+    printf( "%04X  Length: %d", 4, len );
+    printf( " (%s)\n", len + 2 * sizeof( u32 ) == flen ? "OK" : "Fail" );
+  }
   if( len + 2 * sizeof( u32 ) != flen )
     return -10;
   if( crc != fcrc )
@@ -106,25 +112,32 @@ decode_vendor( u8 *d, u32 flen )
   off = 2 * sizeof( u32 );
   while( len )
   {
-    printf( DELIM );
     memcpy( &e, d + off, sizeof( struct entry ) );
     if( e.fsize > len )
       return -12;
-    printf( "%04X  EntrySize: %d\n", off + OFF( esize ), e.esize );
-    printf( "%04X  Type: %d (%s)\n", off + OFF( type ), e.type,
-        type_str[e.type] );
-    printf( "%04X  FieldSize: %d\n", off + OFF( fsize ), e.fsize );
-    printf( "%04X  CRC32: %08X", off + OFF( crc ), e.crc );
+    if( !sw.gen_lic_files )
+    {
+      printf( DELIM );
+      printf( "%04X  EntrySize: %d\n", off + OFF( esize ), e.esize );
+      printf( "%04X  Type: %d (%s)\n", off + OFF( type ), e.type,
+          type_str[e.type] );
+      printf( "%04X  FieldSize: %d\n", off + OFF( fsize ), e.fsize );
+      printf( "%04X  CRC32: %08X", off + OFF( crc ), e.crc );
+    }
     crc = crc32( d + off + OFF( strlen ), e.fsize - 2 * sizeof( u32 ) );
-    printf( " (%s)\n", crc == e.crc ? "OK" : "Fail" );
-    printf( "%04X  DataSize: %d\n", off + OFF( dsize ), e.dsize );
-    printf( "%04X  StringLen: %d\n", off + OFF( strlen ), e.strlen );
+    if( !sw.gen_lic_files )
+    {
+      printf( " (%s)\n", crc == e.crc ? "OK" : "Fail" );
+      printf( "%04X  DataSize: %d\n", off + OFF( dsize ), e.dsize );
+      printf( "%04X  StringLen: %d\n", off + OFF( strlen ), e.strlen );
+    }
     data = malloc( e.dsize );
     memcpy( data, d + off + sizeof( struct entry ), e.dsize );
     dbuf = xxtea_decrypt( data, e.dsize, ( u8 * ) default_key, &dlen );
     free( data );
     dbuf[e.strlen] = 0;
-    printf( "%04X  String: %s\n", off + sizeof( struct entry ), dbuf );
+    if( !sw.gen_lic_files )
+      printf( "%04X  String: %s\n", off + sizeof( struct entry ), dbuf );
     switch ( e.type )
     {
       case 5:
@@ -345,6 +358,7 @@ decrypt_keydata( char *bin, char *dec )
   if( ( s = strchr( obuf, ';' ) ) == NULL )
     return -3;
   memcpy( Vendor.aes_key, s + 1, 32 );  // AES key as ASCII not hex!!!
+  aes_setkey_enc( &ctx, Vendor.aes_key, 32 * 8 );
   if( sw.debug )
   {
     f = fopen( dec, "wb" );
@@ -355,61 +369,7 @@ decrypt_keydata( char *bin, char *dec )
   return old;
 }
 
-void
-generate_options( char *model, int new )
-{
-  aes_context   ctx;
-  char        **opt, ***rnd, *family;
-  u8            xxx[4 * 16], nib;
-  char         *r, res[3 * 2 * 16 + 16 + 1];
-  int           i, len;
-
-  printf( DELIM );
-  printf( "Generating options for %s\n", model );
-  printf( DELIM );
-  family = strdup( model );
-  for( i = 0; family[i]; i++ )
-    if( family[i] <= '9' )
-      break;
-  for( i++; family[i]; i++ )
-    if( family[i] <= '9' )
-      family[i] = '0';
-    else
-      family[i] = 0;
-  aes_setkey_enc( &ctx, Vendor.aes_key, 32 * 8 );
-  for( opt = scope_options; *opt; opt++ )
-  {
-    if( Vendor.option && strcmp( *opt, Vendor.option ) )
-      continue;
-    memset( xxx, 0, 3 * 16 );
-    sprintf( xxx, "%s#0#%s#4#0#0", model, *opt );
-    rnd = ( char *** ) ( xxx + 0x30 );
-    *rnd = opt;                 // add some randomness to the last 16 bytes
-    for( i = 0; i < 4; i++ )
-      aes_encrypt( &ctx, xxx + i * 16, xxx + i * 16 );
-    r = ( void * ) res;
-    // append 16 random chars for new licenses
-    len = new ? 56 : 48;
-    for( i = 0; i < len; i++ )
-    {
-      // u8 to lsb hex 
-      nib = xxx[i] & 0xf;
-      nib += '0';
-      if( nib > '9' )
-        nib += 0x27;
-      *r++ = nib;
-      nib = ( xxx[i] >> 4 ) & 0xf;
-      nib += '0';
-      if( nib > '9' )
-        nib += 0x27;
-      *r++ = nib;
-    }
-    *r = 0;
-    printf( ":SYST:OPT:INST %s-%s@%s\n", family, *opt, res );
-  }
-}
-
-void
+static void
 list_options( void )
 {
   int           i, j, n;
@@ -448,9 +408,117 @@ list_options( void )
     }
     putchar( '\n' );
   }
-  printf( "Bandwidth 'StaticSysBand' range [4-17] depending on options and hardware:\n"
+  printf
+      ( "Bandwidth 'StaticSysBand' range [4-17] depending on options and hardware:\n"
       "4 (default), 5 (21,23), 6 (21-hw4-5,23-hw4-5,24), 7 (25 series 900),\n"
       "9 (23-hw5,24-hw6,26,27), 10(25-hw7), 13(26-hw9,27-hw9,28), 17(27-hw9,28-hw13)\n" );
+}
+
+static void
+generate_single_option( char *family, char *model, char *opt, int new )
+{
+  char          fname[32];
+  u8            xxx[4 * 16], nib;
+  char         *r, res[3 * 2 * 16 + 16 + 1];
+  char        **rnd;
+  FILE         *f;
+  int           i, len, LicenseType, LicenseTime;
+
+  memset( xxx, 0, 3 * 16 );
+  LicenseType = LicenseTime = 0;        // never expire
+  sprintf( xxx, "%s#0#%s#4#%d#%d", model, opt, LicenseType, LicenseTime );
+  rnd = ( char ** ) ( xxx + 0x30 );
+  *rnd = opt;                   // add some randomness to the last 16 bytes
+  for( i = 0; i < 4; i++ )
+    aes_encrypt( &ctx, xxx + i * 16, xxx + i * 16 );
+  r = ( void * ) res;
+  // append 16 random chars for new licenses
+  len = new ? 56 : 48;
+  for( i = 0; i < len; i++ )
+  {
+    // u8 to lsb hex 
+    nib = xxx[i] & 0xf;
+    nib += '0';
+    if( nib > '9' )
+      nib += 0x27;
+    *r++ = nib;
+    nib = ( xxx[i] >> 4 ) & 0xf;
+    nib += '0';
+    if( nib > '9' )
+      nib += 0x27;
+    *r++ = nib;
+  }
+  *r = 0;
+  if( sw.gen_lic_files )
+  {
+    strcpy( fname, opt );
+    strcat( fname, ".lic" );
+    if( ( f = fopen( fname, "w" ) ) != NULL )
+    {
+      fprintf( f, "%s@%s\n", opt, res );
+      fclose( f );
+      printf( "%s ", opt );
+    }
+  }
+  else
+    printf( ":SYST:OPT:INST %s-%s@%s\n", family, opt, res );
+}
+
+void
+generate_options( char *model, int new )
+{
+  char          series;
+  char        **fam_opt, *family;
+  int           i;
+
+  printf( DELIM );
+  printf( "Generating options for %s\n", model );
+  printf( DELIM );
+  family = strdup( model );
+  for( i = 0; family[i]; i++ )
+    if( family[i] <= '9' )
+      break;
+  series = family[i];
+  for( i++; family[i]; i++ )
+    if( family[i] <= '9' )
+      family[i] = '0';
+    else
+      family[i] = 0;
+  fam_opt = scope_options;
+  if( Vendor.option )
+  {
+    while( *++fam_opt )
+      if( !strcmp( *fam_opt, Vendor.option ) )
+        break;
+    if( *fam_opt )
+      generate_single_option( family, model, *fam_opt, new );
+    else
+      list_options(  );
+  }
+  else
+  {
+    switch ( series )
+    {
+      case '8':
+        fam_opt = series800_options;
+        break;
+      case '9':
+        fam_opt = series900_options;
+        break;
+      case '1':
+      case '2':
+        fam_opt = series1000_options;
+        break;
+      case '4':
+        fam_opt = series4000_options;
+        break;
+    }
+    while( *++fam_opt )
+      generate_single_option( family, model, *fam_opt, new );
+  }
+  if( sw.gen_lic_files )
+    printf( "\n" );
+  printf( DELIM );
 }
 
 void
@@ -464,7 +532,8 @@ usage( char *progname )
   fprintf( stderr, "\t-A #\tset MAC address\n" );
   fprintf( stderr, "\tOption strings require 'RKey.data' (or 'Key.data')\n" );
   fprintf( stderr, "\t-l\tlist available options\n" );
-  fprintf( stderr, "\t-o\tgenerate all option strings\n" );
+  fprintf( stderr,
+      "\t-o\tgenerate all option strings for the current series\n" );
   fprintf( stderr, "\t-O #\tgenerate option string for feature #\n" );
   fprintf( stderr, "\t-d\tdebug switch\n" );
   exit( 0 );
@@ -485,7 +554,7 @@ main( int argc, char *argv[] )
 
   do
   {
-    option = getopt( argc, argv, "hdM:nN:aA:loO:" );
+    option = getopt( argc, argv, "hdM:nN:aA:gloO:" );
     switch ( option )
     {
       case 'd':
@@ -521,6 +590,9 @@ main( int argc, char *argv[] )
         Vendor.mac_low_nibbles &= 0xfffff;
         sw.reencode = 1;
         break;
+      case 'g':
+        sw.gen_lic_files = 1;
+        break;
       case 'l':
         sw.list_options = 1;
         break;
@@ -553,6 +625,11 @@ main( int argc, char *argv[] )
     vendor_bin = "vendor.bin";
   else
     vendor_bin = argv[optind++];
+  if( strstr( argv[0], "generate_all_options" ) )
+  {
+    sw.gen_lic_files = 1;
+    sw.gen_options = 1;
+  }
   vendor_enc = strdup( vendor_bin );
   vendor_dec = strdup( vendor_bin );
   if( ( p = strrchr( vendor_bin, '.' ) ) != NULL )
