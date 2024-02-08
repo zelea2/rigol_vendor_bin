@@ -38,4 +38,4 @@ to transfer the ARM64 executable to your scope then run it:
  - adb -s IP:55555 shell
  - cd /rigol/data
  - ./generate_all_options
-This will create all the option.lic files which will be read at next reboot.
+This will create all the option.lic files which will be installed at next reboot.
