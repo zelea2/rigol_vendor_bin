@@ -1,7 +1,8 @@
 rigol_vendor_bin is a command line utility to
 decode and encode the vendor.bin file from a Rigol oscilloscope
 
-Precompiled Linux, Windows and ARM64 binaries are included 
+Precompiled Linux, Windows and Android ARM64 binaries are available
+from 'Releases' section
 
 Rigol 'vendor.bin' encoder/decoder v1.1 - Zelea
 
@@ -16,6 +17,7 @@ Option strings require 'RKey.data' (or 'Key.data')
  - -l      list available options
  - -o      generate all option strings for the current series
  - -O #    generate option string for feature #
+ - -g      generate .lic files instead of strings
  - -d      debug switch
 
 Step-by-step guide:
