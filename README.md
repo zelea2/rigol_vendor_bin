@@ -17,7 +17,7 @@ Option strings require 'RKey.data' (or 'Key.data')
  - -l      list available options
  - -o      generate all option strings for the current series
  - -O #    generate option string for feature #
- - -g      generate .lic files instead of strings
+ - -g      generate .lic files instead of SCPI strings
  - -d      debug switch
 
 Step-by-step guide:

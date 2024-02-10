@@ -532,10 +532,9 @@ usage( char *progname )
   fprintf( stderr, "\t-A #\tset MAC address\n" );
   fprintf( stderr, "\tOption strings require 'RKey.data' (or 'Key.data')\n" );
   fprintf( stderr, "\t-l\tlist available options\n" );
-  fprintf( stderr,
-      "\t-o\tgenerate all option strings for the current series\n" );
+  fprintf( stderr, "\t-o\tgenerate all option strings for the current series\n" );
   fprintf( stderr, "\t-O #\tgenerate option string for feature #\n" );
-  fprintf( stderr, "\t-g\tgenerate .lic files instead of strings\n" );
+  fprintf( stderr, "\t-g\tgenerate .lic files instead of SCPI strings\n" );
   fprintf( stderr, "\t-d\tdebug switch\n" );
   exit( 0 );
 }

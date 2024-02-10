@@ -10,14 +10,14 @@
 
 #define API_SetStr2Hex _Z14API_SetStr2Hex7RStringPcRi
 #define RString_toUpper _ZN7RString7toUpperEv
+#define RString_remove _ZN7RString6removeEii
+#define CApiLicense_constructor _ZN11CApiLicenseC2E7RStringi
 #define CApiLicense_verifyOption _ZN11CApiLicense12verifyOptionEP8COptInfoR7RStringS3_
 #define CApiLicense_getLicenseKey _ZN11CApiLicense13getLicenseKeyER7RStringS1_
 #define CApiLicense_verifyLicense _ZN11CApiLicense13verifyLicenseEv
 #define CApiLicense_init _ZN11CApiLicense4initEv
-#define CApiLicense_CApiLicense _ZN11CApiLicenseC2E7RStringi
 #define CApiLicense_generate_something _ZN11CApiLicense18generate_somethingEm
-#define RString_remove _ZN7RString6removeEii
-#define COptInfo_COptInfo _ZN8COptInfoC2E7OptTypei
+#define COptInfo_constructor _ZN8COptInfoC2E7OptTypei
 #define COptInfo_setName _ZN8COptInfo7setNameERK7RString
 #define COptInfo_setLicense _ZN8COptInfo10setLicenseERK7RString
 
@@ -46,17 +46,17 @@ typedef struct
 
 int           API_SetStr2Hex( RString, unsigned char *, int * );
 int           RString_toUpper( RString * );
+int           RString_remove( RString *, int from, int len, RString * );
+void          CApiLicense_constructor( CApiLicense * this, RString, int );
 int           CApiLicense_init( CApiLicense * this );
 int           CApiLicense_verifyLicense( CApiLicense * this );
 int           CApiLicense_getLicenseKey( CApiLicense * this, RString *,
     RString * );
 int           CApiLicense_verifyOption( CApiLicense * this, COptInfo *,
     RString *, RString * );
-void          CApiLicense_CApiLicense( CApiLicense * this, RString, int );
 int           CApiLicense_generate_something( CApiLicense * this,
     long long len, void **vect );
-int           RString_remove( RString *, int from, int len, RString * );
-void          COptInfo_COptInfo( COptInfo *, int, int );
+void          COptInfo_constructor( COptInfo *, int, int );
 const RString *COptInfo_setName( COptInfo *, RString * );
 const RString *COptInfo_setLicense( COptInfo *, RString * );
 
@@ -118,14 +118,14 @@ main( int argc, char *argv[] )
 #else
   printf( "lic init\n" );
   set_RString( &z, "License" );
-  CApiLicense_CApiLicense( &AL, z, 0x24 );
+  CApiLicense_constructor( &AL, z, 0x24 );
   CApiLicense_init( &AL );
   set_RString( &a, "key" );
   set_RString( &b, "seed" );
   CApiLicense_getLicenseKey( &AL, &a, &b );
   printf( "key: %s\n", get_RString( &a, NULL ) );
   printf( "seed: %s\n", get_RString( &b, NULL ) );
-  COptInfo_COptInfo( &Opt, 19, 0 << 6 ); // RLU
+  COptInfo_constructor( &Opt, 19, 0 << 6 ); // RLU = 19
   set_RString( &z, "RLU" );
   COptInfo_setName( &Opt, &z );
   set_RString( &z, "d272eae068c46792d961e7589d3ee0bb5bc962346bb4b8f4d929b17e6049cda4b7d2a20db5e0e9b4473b6999f080b6c80123456701234567");
