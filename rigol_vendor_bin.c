@@ -525,17 +525,18 @@ void
 usage( char *progname )
 {
   fprintf( stderr, "\n%s [options] [vendor_bin_file]\n", progname );
-  fprintf( stderr, "\t-M #\tset scope model\n" );
-  fprintf( stderr, "\t-n\trandom serial number\n" );
-  fprintf( stderr, "\t-N #\tset serial number\n" );
-  fprintf( stderr, "\t-a\trandom MAC address\n" );
-  fprintf( stderr, "\t-A #\tset MAC address\n" );
-  fprintf( stderr, "\tOption strings require 'RKey.data' (or 'Key.data')\n" );
-  fprintf( stderr, "\t-l\tlist available options\n" );
-  fprintf( stderr, "\t-o\tgenerate all option strings for the current series\n" );
-  fprintf( stderr, "\t-O #\tgenerate option string for feature #\n" );
-  fprintf( stderr, "\t-g\tgenerate .lic files instead of SCPI strings\n" );
-  fprintf( stderr, "\t-d\tdebug switch\n" );
+  fprintf( stderr, 
+      "\t-M #\tset scope model\n"
+      "\t-n\trandom serial number\n"
+      "\t-N #\tset serial number\n"
+      "\t-a\trandom MAC address\n"
+      "\t-A #\tset MAC address\n"
+      "\tOption strings require 'RKey.data' (or 'Key.data')\n"
+      "\t-l\tlist available options\n"
+      "\t-o\tgenerate all option strings for the current series\n"
+      "\t-O #\tgenerate option string for feature #\n"
+      "\t-g\tgenerate .lic files instead of SCPI strings\n"
+      "\t-d\tdebug switch\n" );
   exit( 0 );
 }
 

@@ -4,7 +4,7 @@ decode and encode the vendor.bin file from a Rigol oscilloscope
 Precompiled Linux, Windows and Android ARM64 binaries are available
 from 'Releases' section
 
-Rigol 'vendor.bin' encoder/decoder v1.1 - Zelea
+Rigol 'vendor.bin' encoder/decoder v1.2 - Zelea
 
 rigol_vendor_bin [options] [vendor_bin_file]
  - -M #    set scope model
@@ -41,3 +41,19 @@ to transfer the ARM64 executable to your scope then run it:
  - cd /rigol/data
  - ./generate_all_options
 This will create all the option.lic files which will be installed at next reboot.
+
+Included is a native utility program 'nv-mem' which allows you
+to read/write/compare the FRAM content and also covers the functionality of
+'spi2erase' 'spi2flash' 'spi2fpga' and 'spi2boot' programs.
+nv-mem [options] [binary_file]
+ - -r      read memory
+ - -c      quick compare memory
+ - -C      thorough compare memory
+ - -w      write memory
+ - -s #    start address (default 0)
+ - -o #    offset in file (default 0)
+ - -l #    length to read/write (default memory size)
+ - -q      quiet operation (no warnings or prompts)
+ - -d      hexdump the binary_file
+ - -F      select SerialFlash (default FRAM) - DANGEROUS!
+ - -b      reboot FPGA from start address
