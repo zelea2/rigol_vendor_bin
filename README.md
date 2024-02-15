@@ -45,6 +45,7 @@ This will create all the option.lic files which will be installed at next reboot
 Included is a native utility program 'nv-mem' which allows you
 to read/write/compare the FRAM content and also covers the functionality of
 'spi2erase' 'spi2flash' 'spi2fpga' and 'spi2boot' programs.
+
 nv-mem [options] [binary_file]
  - -r      read memory
  - -c      quick compare memory
