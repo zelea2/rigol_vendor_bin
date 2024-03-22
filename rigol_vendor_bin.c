@@ -455,7 +455,7 @@ generate_single_option( char *family, char *model, char *opt, int new )
     strcat( fname, ".lic" );
     if( ( f = fopen( fname, "w" ) ) != NULL )
     {
-      fprintf( f, "%s@%s\0x0A", opt, res );
+      fprintf( f, "%s@%s\x0A", opt, res );
       fclose( f );
       printf( "%s ", opt );
     }
