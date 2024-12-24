@@ -22,8 +22,8 @@ typedef uint32_t u32;
 typedef uint64_t u64;
 #endif
 
-#define FRAM_LEN 0x2000
-#define SFLASH_LEN 0x1000000
+#define FRAM_LEN 0x2000         // MB85RC64
+#define SFLASH_LEN 0x1000000    // 25Q128
 #define SFLASH_SECTOR 0x100
 #define BUF_LEN 0x200
 
@@ -152,41 +152,6 @@ spi_max_speed( int dev, u32 speed )
   if( ioctl( dev, SPI_IOC_RD_MAX_SPEED_HZ, &speed ) == -1 )
     error( "Can't get max speed\n" );
 }
-
-#if 0
-int
-spi_pgm( int dev, char *a2 )
-{
-  FILE         *v4;
-  int           v5;
-  unsigned int  v6;
-  int           v7;
-  unsigned int  v8;
-
-  v4 = fopen( a2, "r" );
-  if( !v4 )
-    return -1;
-  if( v5 )
-  {
-    v6 = fread( v5, 1LL, 123, v4 );
-    printf( "Sending :0x%x\n", v6 );
-    v7 = v5;
-    v8 = v6 / SFLASH_SECTOR;
-    puts( "\nStart Prog Flash" );
-    while( v8 )
-    {
-      write( dev, v7, SFLASH_SECTOR );
-      v7 += SFLASH_SECTOR;
-      --v8;
-      usleep( 1000 );
-    }
-    write( dev, v7, ( int ) ( v5 + v6 - v7 ) );
-    usleep( 10000 );
-  }
-  fclose( v4 );
-  return 0LL;
-}
-#endif
 
 int
 compare( int addr, int len )
@@ -340,7 +305,7 @@ main( int argc, char *argv[] )
   if( sw.operation == OP_NONE )
     usage( argv[0] );
   if( start_address >= ( sw.sflash ? SFLASH_LEN : FRAM_LEN ) )
-    error( "Start address 0x%x is beyond the memory length\n",
+    error( "Start address 0x%x is above the memory length\n",
         start_address );
   if( sw.sflash && start_address & 0xff )
     error( "Start address 0x%x must be sector (0x100) aligned\n",
@@ -392,7 +357,7 @@ main( int argc, char *argv[] )
     }
     spi_bits( dev, 8 );
     spi_mode( dev, 0 );
-    // spi_lsb( dev, 0 ); // default is MSB
+    // spi_lsb( dev, 0 ); // default is already MSB
     spi_max_speed( dev, 10000000 );     // 10MHz
     puts( "SPI FLASH device is ready" );
     switch ( sw.operation )
