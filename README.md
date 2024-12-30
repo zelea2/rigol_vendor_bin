@@ -39,8 +39,11 @@ to transfer the ARM64 executable to your scope then run it:
  - adb -s IP:55555 push generate_all_options /rigol/data
  - adb -s IP:55555 shell
  - cd /rigol/data
+ - chmod +x generate_all_options
  - ./generate_all_options
-This will create all the option.lic files which will be installed at next reboot.
+ - reboot
+
+This will create all the option.lic files, which will take effect after the reboot.
 
 Included is a native utility program 'nv-mem' which allows you
 to read/write/compare the FRAM content and also covers the functionality of
